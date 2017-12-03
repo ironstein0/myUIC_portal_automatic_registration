@@ -19,6 +19,16 @@ def send_sms(message_body):
 
     print(message.sid)
 
+    client = Client(account_sid, auth_token)
+
+    message = client.messages.create(
+        to=     "+13127926471", 
+        from_=  twilio_number,
+        body=   message_body
+    )
+
+    print(message.sid)
+
     # message = client.messages.create(
     #     to=     "+13128387836", 
     #     from_=  "+16307915714",

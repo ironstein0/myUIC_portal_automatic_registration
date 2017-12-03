@@ -10,8 +10,8 @@ USER_NAME = "rkaran3@uic.edu"
 USER_PASSWORD = "AlbertEinstein011235"
 TERM = "220181"
 # INTERESTED_COURSE_NUMBERS = ['412', '501', '583', '511', '514', '489']
-INTERESTED_COURSE_NUMBERS = ['412']
-AUTOMATICALLY_REGISTER_COURSE_NUMBERS = ['501', '412']
+INTERESTED_COURSE_NUMBERS = ['412', '418', '421', '583', '473']
+AUTOMATICALLY_REGISTER_COURSE_NUMBERS = ['412']
 
 def get_chrome_driver(incognito=False):
     # options for the webdriver
@@ -99,36 +99,70 @@ course_availability_status_dictionary = {}
 
 def monitor_course(course_form_link_element, course_number, course_name):
     print('monitoring course number : ' + course_number)
+    
     course_form_link_element.find_elements_by_tag_name('input')[-1].click()
     courses_description_table = driver.find_element_by_xpath('//table[@summary="This layout table is used to present the sections found"]')
     course_options = courses_description_table.find_elements_by_tag_name('tbody')
     course_options = course_options[0].find_elements_by_tag_name('tr')
+
     is_available = False
-    for course in  course_options:
+
+    for row in course_options[2:]:
+        columns = row.find_elements_by_tag_name('td')
+        crn, subj, crse, sec, cmp, cred = [element.text for element in columns[1:7]]
+        s = ''
+        s += 'crn: ' + str(crn) + '\n'
+        s += 'subj: ' + str(subj) + '\n'
+        s += 'crse: ' + str(crse) + '\n'
+        s += 'sec: ' + str(sec) + '\n'
+        s += 'cmp: ' + str(cmp) + '\n'
+        s += 'cred: ' + str(cred)
+        print(s)
+        
         try:
-            checkboxes = course.find_elements_by_tag_name('td')[0].find_elements_by_tag_name('input')
+            checkboxes = columns[0].find_elements_by_tag_name('input')
             if len(checkboxes) > 0:
-                is_available = True
-                break
+                print('course is available')
+
+                if str(crse) in AUTOMATICALLY_REGISTER_COURSE_NUMBERS and str(cred) == '4.000':
+                    # AUTOMATICALLY REGISTER FOR THIS COURSE
+                    print('automatically registering for this course!')
+                    checkbox = checkboxes[0]
+                    checkbox.click()
+                    register_button = driver.find_element_by_xpath('//input[@value="Register"]')
+                    register_button.click()
+                    time.sleep(5)
+                    submit_changes_button = driver.find_element_by_xpath('//input[@value="Submit Changes"]')
+                    submit_changes_button.click()
+                    send_sms('Automatically registered for the following course, Hurray!\n' + s)
+                    
+                    driver.back()
+                    time.sleep(5)
+                    driver.back()
+                    time.sleep(5)
+
+                elif str(cred) == '4.000':
+                    # DO NOT REGISTER FOR THIS COURSE AUTOMATICALLY
+                    print('not registering for this course')
+                    is_available = True
+                
+            else:
+                print('course is not available')
         except:
-            pass
+            print('course is not available')
+
     driver.back()
-
-    def send_sms_():
-        send_sms('course number : ' + course_number + '\ncourse name : ' + course_name + '\nis available : ' + str(is_available))
-
+    
     if course_number not in course_availability_status_dictionary.keys():
         # no previous records
         course_availability_status_dictionary[course_number] = is_available
-        send_sms_()
-        # if is_available:
-        #     # course available
-        #     send_sms_()
+        send_sms('course number : ' + course_number + '\ncourse name : ' + course_name + '\nis available : ' + str(is_available))
     else:
         # yes previous records
         if course_availability_status_dictionary[course_number] != is_available:
             course_availability_status_dictionary[course_number] = is_available
-            send_sms_()
+            send_sms('course number : ' + course_number + '\ncourse name : ' + course_name + '\nis available : ' + str(is_available))
+    
 
 def register_course(course_form_link_element, course_number, course_name):
     pass
@@ -157,4 +191,4 @@ def monitor_all_courses(driver):
 
 while True:
     monitor_all_courses(driver)
-    time.sleep(15)
+    time.sleep(3)
