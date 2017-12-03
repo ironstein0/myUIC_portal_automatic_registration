@@ -4,13 +4,16 @@ import time
 import os
 from send_sms import send_sms
 import threading
+from config import credentials
 
 # CONSTANTS
-USER_NAME = "rkaran3@uic.edu"
-USER_PASSWORD = "AlbertEinstein011235"
+USER_NAME = credentials.USER_NAME
+USER_PASSWORD = credentials.USER_PASSWORD
 TERM = "220181"
+TIME_BETWEEN_CHECKS = 3
 # INTERESTED_COURSE_NUMBERS = ['412', '501', '583', '511', '514', '489']
-INTERESTED_COURSE_NUMBERS = ['412', '418', '421', '583', '473']
+# INTERESTED_COURSE_NUMBERS = ['412', '418', '421', '583', '473']
+INTERESTED_COURSE_NUMBERS = ['412']
 AUTOMATICALLY_REGISTER_COURSE_NUMBERS = ['412']
 
 def get_chrome_driver(incognito=False):
@@ -191,4 +194,4 @@ def monitor_all_courses(driver):
 
 while True:
     monitor_all_courses(driver)
-    time.sleep(3)
+    time.sleep(TIME_BETWEEN_CHECKS)
