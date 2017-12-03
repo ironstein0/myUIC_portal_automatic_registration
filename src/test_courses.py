@@ -9,7 +9,9 @@ import threading
 USER_NAME = "rkaran3@uic.edu"
 USER_PASSWORD = "AlbertEinstein011235"
 TERM = "220181"
-INTERESTED_COURSE_NUMBERS = ['501', '583', '511', '489']
+# INTERESTED_COURSE_NUMBERS = ['412', '501', '583', '511', '514', '489']
+INTERESTED_COURSE_NUMBERS = ['412']
+AUTOMATICALLY_REGISTER_COURSE_NUMBERS = ['501', '412']
 
 def get_chrome_driver(incognito=False):
     # options for the webdriver
@@ -23,8 +25,11 @@ def get_chrome_driver(incognito=False):
 def find_element_by_href(driver, href): 
     return driver.find_element_by_xpath('//a[@href="' + href + '"]')
 
-driver = get_chrome_driver(incognito=True)
+# driver = get_chrome_driver(incognito=True)
+# driver = get_chrome_driver(incognito=False)
+driver = webdriver.Firefox()
 driver.get("https://my.uic.edu/uPortal")
+
 
 # my.uic.edu
 # login_link = find_element_by_href(driver, 'https://my.uic.edu/uPortal')
@@ -36,6 +41,19 @@ user_id_field.send_keys(USER_NAME)
 password_field = driver.find_element_by_xpath('//input[@id="password"]')
 password_field.send_keys(USER_PASSWORD)
 login_button = driver.find_element_by_xpath('//button[@class="btn btn-lg btn-primary btn-block"]')
+
+
+# time.sleep(5)
+# driver.switch_to.window(window_name=driver.window_handles[0])
+# # driver.execute_script("window.close('');")
+# time.sleep(1)
+# # raise SystemExit(0)
+
+# user_id_field = driver.find_element_by_xpath('//input[@id="UserID"]')
+# user_id_field.send_keys(USER_NAME)
+# password_field = driver.find_element_by_xpath('//input[@id="password"]')
+# password_field.send_keys(USER_PASSWORD)
+# login_button = driver.find_element_by_xpath('//button[@class="btn btn-lg btn-primary btn-block"]')
 login_button.click()
 
 # https://my.uic.edu/uPortal/render.userLayoutRootNode.uP;jsessionid=28394081EB8B9D77AE5D9779CD1A2558
@@ -44,6 +62,7 @@ academics_tab.click()
 student_self_service_login = find_element_by_href(driver, 'https://my.uic.edu/uPortal/b2euic03?redirect=https://webprod.admin.uillinois.edu/ssa/servlet/SelfServiceLogin&redirectParam=appName=edu.uillinois.aits.SelfServiceLogin&redirectParam=dad=BANPROD2&redirectParam=target=A')
 student_self_service_login.click()
 
+time.sleep(5)
 driver.switch_to_window(driver.window_handles[1])
 time.sleep(5)
 
@@ -62,6 +81,7 @@ for option in all_options:
         select_term.submit()
         break
 
+time.sleep(5)
 select_course = driver.find_element_by_xpath('//table[@class="dataentrytable"]')
 all_options = select_course.find_elements_by_tag_name('option')
 for option in all_options:
@@ -97,19 +117,21 @@ def monitor_course(course_form_link_element, course_number, course_name):
     def send_sms_():
         send_sms('course number : ' + course_number + '\ncourse name : ' + course_name + '\nis available : ' + str(is_available))
 
-    # if course_number not in course_availability_status_dictionary.keys():
-    #     # no previous records
-    #     course_availability_status_dictionary[course_number] = is_available
-    #     if is_available:
-    #         # course available
-    #         send_sms_()
-    # else:
-    #     # yes previous records
-    #     if course_availability_status_dictionary[course_number] != is_available:
-    #         course_availability_status_dictionary[course_number] = is_available
-    #         send_sms_()
+    if course_number not in course_availability_status_dictionary.keys():
+        # no previous records
+        course_availability_status_dictionary[course_number] = is_available
+        send_sms_()
+        # if is_available:
+        #     # course available
+        #     send_sms_()
+    else:
+        # yes previous records
+        if course_availability_status_dictionary[course_number] != is_available:
+            course_availability_status_dictionary[course_number] = is_available
+            send_sms_()
 
-    send_sms_()
+def register_course(course_form_link_element, course_number, course_name):
+    pass
 
 def monitor_all_courses(driver):
     courses_table = driver.find_element_by_xpath('//table[@summary="This layout table is used to present the course found"]')
